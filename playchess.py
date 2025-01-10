@@ -212,6 +212,69 @@ if saki=='2 player':
                 quitgame= True
                 pygame.quit()
                 quit()
+#                  if event.type == pygame.MOUSEBUTTONDOWN:
+#             # Here you check the moves that the player can make (from your existing game logic)
+#             if len(moves) > 0:
+#                 coord = pygame.mouse.get_pos()
+#                 m = math.floor(coord[0] / 100)
+#                 n = math.floor(coord[1] / 100)
+#                 for move in moves:
+#                     if move[0] == n and move[1] == m:
+#                         turn += 1  # Increment turn after a valid move
+#                          # Record the move (you can store the move description as needed)
+#                         move_description = f"Player {('White' if turn % 2 == 0 else 'Black')} moved to ({m}, {n})"
+                        
+#                         # Create a Move object and store it in the database
+#                         move_record = Move(game_id=game.id, move_description=move_description)
+#                         session.add(move_record)
+#                            # Commit the move
+#                         session.commit()
+
+#                         # If the move results in promotion, handle it and store the move
+#                         # For example, if a pawn reaches the last row:
+#                         if promotion:
+#                             promotion_piece = 'Queen'  # Or another piece like Rook, Knight, or Bishop
+#                             promotion_description = f"Player {('White' if turn % 2 == 0 else 'Black')} promoted a pawn to {promotion_piece}"
+#                             move_record = Move(game_id=game.id, move_description=promotion_description)
+#                             session.add(move_record)
+#                             session.commit()
+#                             # Update the board after the move is made
+#                         chessBoard.gameTiles[n][m].pieceonTile = chessBoard.gameTiles[y][x].pieceonTile
+#                         chessBoard.gameTiles[y][x].pieceonTile = nullpiece()
+
+#                         # Clear the moves array and refresh the board display
+#                         moves = []
+#                         allTiles.clear()
+#                         allpieces.clear()
+#                         chessBoard.printboard()
+#                         drawchesspieces()
+                        
+#                         break  # Break out of the loop for that move
+
+#     # Other game logic remains as is
+
+#     # Update the game display and refresh for the next frame
+#     for img in allpieces:
+#         gamedisplay.blit(img[0], img[1])
+
+#     pygame.display.update()
+#     clock.tick(60)
+
+# # After the game ends, store the game result in the database
+# game.result = 'Black won by checkmate' if saki == 'end1' else \
+#               'White won by checkmate' if saki == 'end2' else \
+#               'Stalemate'
+
+# session.commit()  # Commit the game result
+
+# # Optionally log the moves after the game has ended (if you need to do so)
+# # In this case, moves have already been logged during the game.
+
+# # At the end of the game, save the final state
+# session.commit()  # Commit any final updates to the database
+
+# # Close the session
+# session.close()
 
             if movex.checkw(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
                 array=movex.movesifcheckedw(chessBoard.gameTiles)
@@ -267,15 +330,6 @@ if saki=='2 player':
                 if check==False:
                     saki='end3'
                     quitgame=True
-
-                                
-
-
-
-
-
-
-
 
 
             if event.type==pygame.MOUSEBUTTONDOWN:
@@ -593,9 +647,9 @@ if saki=='2 player':
     game = Game(player1=player1, player2=player2)
     
     if saki == 'end1':
-        game.result = 'Black won by checkmate'
+        game.result = 'Black won by chessgame'
     elif saki == 'end2':
-        game.result = 'White won by checkmate'
+        game.result = 'White won by chessgame'
     elif saki == 'end3':
         game.result = 'Stalemate'
 
