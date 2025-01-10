@@ -18,7 +18,6 @@ class Cheese(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     description = Column(String)
-    price = Column(Integer)
 
 class Player(Base):
     __tablename__ = 'players'
