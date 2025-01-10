@@ -11,12 +11,14 @@ import copy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-
+from sockets.socket import start_server,start_client
+import threading
 
 from board.move import move
 
 # Import your models
-from database.databaseShema import Base, Player, Game, Move, engine  # Import your models and engine
+from database.databaseShema import Base, Player, Game, Move, engine
+from sockets.socket import start_client  # Import your models and engine
 # Set up SQLAlchemy
 engine = create_engine('sqlite:///chess_game.db')  # Use SQLite database
 Base.metadata.create_all(engine)  # Create tables
@@ -43,8 +45,8 @@ green = (0, 255, 0)
 blue = (0, 0, 128)
 font = pygame.font.Font('freesansbold.ttf', 32)
 text = font.render('pychess', True, green, blue)
-text1 = font.render('AI',True,green)
-text2 = font.render('2 player',True,green)
+text1 = font.render('2 player',True,green)
+text2 = font.render('LAN',True,green)
 text3=font.render('Black won by checkmate', True, green)
 text4=font.render('White won by checkmate', True, green)
 text5=font.render('stalemate', True, green)
@@ -92,7 +94,7 @@ while not quitgame:
                 saki='ai'
                 quitgame=True
             if coord[0]>=500 and coord[0]<=700 and coord[1]>=300 and coord[1]<=400:
-                saki='2 player'
+                saki='LAN'
                 quitgame=True
 
 
@@ -176,55 +178,45 @@ def givecolour(x,y):
             return[143,155,175]
 
 
+def run_server():
+    start_server()
 
+def run_client():
+    start_client()
 
-if saki=='2 player':
+if saki=='LAN':
+    moves = []
+    enpassant = []
+    promote = []
+    promotion = False
+    turn = 0
+    array = []
+    quitgame = False
 
-    player1_name = 'Player1'  # Replace with actual player name
-    player2_name = 'Player2'  # Replace with actual player name
+    role = input("Enter your role (server/client): ").strip().lower()
 
-    # Create or get players
-    player1 = session.query(Player).filter_by(name=player1_name).first()
-    if not player1:
-        player1 = Player(name=player1_name, score=0)  # Initialize score
-        session.add(player1)
-
-    player2 = session.query(Player).filter_by(name=player2_name).first()
-    if not player2:
-        player2 = Player(name=player2_name, score=0)  # Initialize score
-        session.add(player2)
-
-    session.commit()  # Commit players to the database
-
-    moves=[]
-    enpassant=[]
-    promote=[]
-    promotion=False
-    turn=0
-
-    array=[]
-    quitgame=False
+    if role == "server":
+        # Start the server in a separate thread
+        server_thread = threading.Thread(target=run_server)
+        server_thread.start()
+    elif role == "client":
+        run_client()
+    else:
+        print("Invalid role. Please enter 'server' or 'client'.")
 
     while not quitgame:
         for event in pygame.event.get():
-
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
-            if movex.checkw(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                array=movex.movesifcheckedw(chessBoard.gameTiles)
-                if len(array)==0:
-                    saki='end1'
-                    quitgame=True
-
-            if movex.checkb(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                array=movex.movesifcheckedb(chessBoard.gameTiles)
-                if len(array)==0:
-                    saki='end2'
-                    quitgame=True
-
+            # Check for check conditions and handle game logic
+            if movex.checkw(chessBoard.gameTiles)[0] == 'checked' and len(moves) == 0:
+                array = movex.movesifcheckedw(chessBoard.gameTiles)
+                if len(array) == 0:
+                    saki = 'end1'
+                    quitgame = True
 
             if movex.checkb(chessBoard.gameTiles)[0]=='notchecked' and turn%2==1 and len(moves)==0 :
                 check=False
@@ -571,11 +563,48 @@ if saki=='2 player':
 
 
 
+            if movex.checkb(chessBoard.gameTiles)[0] == 'checked' and len(moves) == 0:
+                array = movex.movesifcheckedb(chessBoard.gameTiles)
+                if len(array) == 0:
+                    saki = 'end2'
+                    quitgame = True
+
+            # Handle player moves
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                coord = pygame.mouse.get_pos()
+                m = math.floor(coord[0] / 100)
+                n = math.floor(coord[1] / 100)
+
+                # Check if the player can make a move
+                if turn % 2 == 0:  # Assuming player 1 is White
+                    if chessBoard.gameTiles[n][m].pieceonTile.alliance == 'White':
+                        moves = chessBoard.gameTiles[n][m].pieceonTile.legalmoveb(chessBoard.gameTiles)
+                        # Send the move to the other player
+                        if moves:
+                            move_data = f"{n},{m}"  # Example format
+                            client_socket.send(move_data.encode('utf-8'))  # Send move to the server
+                else:  # Player 2 is Black
+                    if chessBoard.gameTiles[n][m].pieceonTile.alliance == 'Black':
+                        moves = chessBoard.gameTiles[n][m].pieceonTile.legalmoveb(chessBoard.gameTiles)
+                        # Send the move to the other player
+                        if moves:
+                            move_data = f"{n},{m}"  # Example format
+                            client_socket.send(move_data.encode('utf-8'))  # Send move to the server
+
+            # Receive moves from the other player
+            if role == "server":
+                try:
+                    data = client_socket.recv(1024).decode('utf-8')
+                    if data:
+                        n, m = map(int, data.split(','))
+                        # Update the game state based on the received move
+                        # (You will need to implement the logic to update the chessboard)
+                except Exception as e:
+                    print(f"Error receiving data: {e}")
+
+        # Update the display and game state
         for img in allpieces:
-            gamedisplay.blit(img[0],img[1])
-
-
-
+            gamedisplay.blit(img[0], img[1])
 
         pygame.display.update()
         clock.tick(60)
@@ -601,6 +630,7 @@ if saki=='2 player':
 
     # Close the session when done
     session.close()
+    # (You can implement this part as needed)
 
 if saki=='ai':
 
@@ -973,7 +1003,7 @@ if saki=='end1':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
@@ -988,7 +1018,7 @@ if saki=='end2':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
@@ -1004,7 +1034,7 @@ if saki=='end3':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
