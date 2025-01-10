@@ -45,7 +45,3 @@ Game Conclusion
 Checkmate: In this game, the outcome was decided when Player M (White) successfully delivered checkmate to Player N’s (Black's) king. This occurred after a series of tactical maneuvers, forcing Player N's king into a position with no escape.
 
 Stalemate or Draw: If at any point, neither player could force a checkmate or one of the players runs out of legal moves while not being in check, a stalemate or draw would occur, resulting in a tie.
-
-Castling: Both players performed castling to safeguard their kings early on. Player M (White) castled kingside while Player N (Black) opted for queenside castling.
-Pawn Promotion: During the game, Player N (Black) successfully promoted a pawn to a queen, creating new threats on the board.
-Tactical Moves: A few tactical blunders by Player N (Black) allowed Player M (White) to capture key pieces, leading to a material advantage.
