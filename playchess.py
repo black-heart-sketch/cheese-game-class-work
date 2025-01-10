@@ -185,29 +185,11 @@ def run_client():
     start_client()
 
 if saki=='LAN':
-
-    player1_name = 'Player1'  # Replace with actual player name
-    player2_name = 'Player2'  # Replace with actual player name
-
-    # Create or get players
-    player1 = session.query(Player).filter_by(name=player1_name).first()
-    if not player1:
-        player1 = Player(name=player1_name, score=0)  # Initialize score
-        session.add(player1)
-
-    player2 = session.query(Player).filter_by(name=player2_name).first()
-    if not player2:
-        player2 = Player(name=player2_name, score=0)  # Initialize score
-        session.add(player2)
-
-    session.commit()  # Commit players to the database
-
     moves = []
     enpassant = []
     promote = []
     promotion = False
     turn = 0
-
     array = []
     quitgame = False
 
@@ -217,7 +199,6 @@ if saki=='LAN':
         # Start the server in a separate thread
         server_thread = threading.Thread(target=run_server)
         server_thread.start()
-        # Do not join here to avoid blocking the main thread
     elif role == "client":
         run_client()
     else:
@@ -230,403 +211,61 @@ if saki=='LAN':
                 pygame.quit()
                 quit()
 
-            if movex.checkw(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                array=movex.movesifcheckedw(chessBoard.gameTiles)
-                if len(array)==0:
-                    saki='end1'
-                    quitgame=True
-
-            if movex.checkb(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                array=movex.movesifcheckedb(chessBoard.gameTiles)
-                if len(array)==0:
-                    saki='end2'
-                    quitgame=True
-
-
-            if movex.checkb(chessBoard.gameTiles)[0]=='notchecked' and turn%2==1 and len(moves)==0 :
-                check=False
-                for x in range(8):
-                    for y in range(8):
-                        if chessBoard.gameTiles[y][x].pieceonTile.alliance=='Black' and turn%2==1:
-                            moves1=chessBoard.gameTiles[y][x].pieceonTile.legalmoveb(chessBoard.gameTiles)
-                            lx1=movex.pinnedb(chessBoard.gameTiles,moves1,y,x)
-                            if len(lx1)==0:
-                                continue
-                            else:
-                                check=True
-                            if check==True:
-                                break
-                    if check==True:
-                        break
-
-
-                if check==False:
-                    saki='end3'
-                    quitgame=True
-
-            if movex.checkw(chessBoard.gameTiles)[0]=='notchecked' and turn%2==0 and len(moves)==0 :
-                check=False
-                for x in range(8):
-                    for y in range(8):
-                        if chessBoard.gameTiles[y][x].pieceonTile.alliance=='White' and turn%2==0:
-                            moves1=chessBoard.gameTiles[y][x].pieceonTile.legalmoveb(chessBoard.gameTiles)
-                            lx1=movex.pinnedw(chessBoard.gameTiles,moves1,y,x)
-                            if len(lx1)==0:
-                                continue
-                            else:
-                                check=True
-                            if check==True:
-                                break
-                    if check==True:
-                        break
-
-
-                if check==False:
-                    saki='end3'
-                    quitgame=True
-
-                                
-
-
-
-
-
-
-
-
-
-            if event.type==pygame.MOUSEBUTTONDOWN:
-                if movex.checkw(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                    array=movex.movesifcheckedw(chessBoard.gameTiles)
-                    coord=pygame.mouse.get_pos()
-                    m=math.floor(coord[0]/100)
-                    n=math.floor(coord[1]/100)
-                    imgx=pygame.transform.scale(pygame.image.load("./chessart/red_square.png",), (100,100))
-                    mx=[]
-                    ma=[]
-                    for move in array:
-                        if(move[1]==m and move[0]==n):
-                            mx=[move[3]*100,move[2]*100]
-                            ma=[move[2],move[3]]
-                            moves.append(ma)
-                            gamedisplay.blit(imgx,mx)
-                            x=move[1]
-                            y=move[0]
-                    break
-
-                if movex.checkb(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
-                    array=movex.movesifcheckedb(chessBoard.gameTiles)
-                    coord=pygame.mouse.get_pos()
-                    m=math.floor(coord[0]/100)
-                    n=math.floor(coord[1]/100)
-                    imgx=pygame.transform.scale(pygame.image.load("./chessart/red_square.png",), (100,100))
-                    mx=[]
-                    ma=[]
-                    for move in array:
-                        if(move[1]==m and move[0]==n):
-                            mx=[move[3]*100,move[2]*100]
-                            ma=[move[2],move[3]]
-                            moves.append(ma)
-                            gamedisplay.blit(imgx,mx)
-                            x=move[1]
-                            y=move[0]
-                    break
-
-                if not len(promote)==0:
-                    coord = pygame.mouse.get_pos()
-                    m=math.floor(coord[0]/100)
-                    n=math.floor(coord[1]/100)
-                    if  chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile.alliance=='Black':
-                        for i in range(len(promote)):
-                            if i==4:
-                                turn=turn-1
-                                break
-                            if promote[i][0]==n and promote[i][1]==m:
-                                if i==0:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=queen('Black',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==1:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=rook('Black',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==2:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=knight('Black',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==3:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=bishop('Black',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-
-                    if  chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile.alliance=='White':
-                        for i in range(len(promote)):
-                            if i==4:
-                                turn=turn-1
-                                break
-                            if promote[i][0]==n and promote[i][1]==m:
-                                if i==0:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=queen('White',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==1:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=rook('White',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==2:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=knight('White',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-                                if i==3:
-                                    chessBoard.gameTiles[promote[4][1]][promote[4][0]].pieceonTile=bishop('White',updateposition(promote[4][1],promote[4][0]))
-                                    chessBoard.gameTiles[promote[5][0]][promote[5][1]].pieceonTile=nullpiece()
-                                    break
-
-                    allTiles.clear()
-                    allpieces.clear()
-                    chessBoard.printboard()
-                    drawchesspieces()
-                    promote=[]
-                    promotion=False
-
-
-
-
-
-
-
-                if not len(moves)==0:
-                    coord = pygame.mouse.get_pos()
-                    m=math.floor(coord[0]/100)
-                    n=math.floor(coord[1]/100)
-                    for move in moves:
-                        if move[0]==n and move[1]==m:
-                            turn=turn+1
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='K' or chessBoard.gameTiles[y][x].pieceonTile.tostring()=='R' or chessBoard.gameTiles[y][x].pieceonTile.tostring()=='k' or chessBoard.gameTiles[y][x].pieceonTile.tostring()=='r':
-                                chessBoard.gameTiles[y][x].pieceonTile.moved=True
-
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='K' and m==x+2:
-                                chessBoard.gameTiles[y][x+1].pieceonTile=chessBoard.gameTiles[y][x+3].pieceonTile
-                                s=updateposition(y,x+1)
-                                chessBoard.gameTiles[y][x+1].pieceonTile.position=s
-                                chessBoard.gameTiles[y][x+3].pieceonTile=nullpiece()
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='K' and m==x-2:
-                                chessBoard.gameTiles[y][x-1].pieceonTile=chessBoard.gameTiles[y][0].pieceonTile
-                                s=updateposition(y,x-1)
-                                chessBoard.gameTiles[y][x-1].pieceonTile.position=s
-                                chessBoard.gameTiles[y][0].pieceonTile=nullpiece()
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='k' and m==x+2:
-                                chessBoard.gameTiles[y][x+1].pieceonTile=chessBoard.gameTiles[y][x+3].pieceonTile
-                                s=updateposition(y,x+1)
-                                chessBoard.gameTiles[y][x+1].pieceonTile.position=s
-                                chessBoard.gameTiles[y][x+3].pieceonTile=nullpiece()
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='k' and m==x-2:
-                                chessBoard.gameTiles[y][x-1].pieceonTile=chessBoard.gameTiles[y][0].pieceonTile
-                                s=updateposition(y,x-1)
-                                chessBoard.gameTiles[y][x-1].pieceonTile.position=s
-                                chessBoard.gameTiles[y][0].pieceonTile=nullpiece()
-
-
-
-                            if not len(enpassant)==0:
-                                chessBoard.gameTiles[enpassant[0]][enpassant[1]].pieceonTile.enpassant=False
-                                enpassant=[]
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P' and y+1==n and x+1==m and chessBoard.gameTiles[n][m].pieceonTile.tostring()=='-':
-                                chessBoard.gameTiles[y][x+1].pieceonTile=nullpiece()
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P' and y+1==n and x-1==m and chessBoard.gameTiles[n][m].pieceonTile.tostring()=='-':
-                                chessBoard.gameTiles[y][x-1].pieceonTile=nullpiece()
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p' and y-1==n and x+1==m and chessBoard.gameTiles[n][m].pieceonTile.tostring()=='-':
-                                chessBoard.gameTiles[y][x+1].pieceonTile=nullpiece()
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p' and y-1==n and x-1==m and chessBoard.gameTiles[n][m].pieceonTile.tostring()=='-':
-                                chessBoard.gameTiles[y][x-1].pieceonTile=nullpiece()
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p' and n==y-2:
-                                chessBoard.gameTiles[y][x].pieceonTile.enpassant=True
-                                enpassant=[n,m]
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P' and n==y+2:
-                                chessBoard.gameTiles[y][x].pieceonTile.enpassant=True
-                                enpassant=[n,m]
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P' and y+1==n and y==6:
-                                promotion=True
-
-                            if chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p' and y-1==n and y==1:
-                                promotion=True
-
-
-                            if promotion==False:
-
-                                chessBoard.gameTiles[n][m].pieceonTile=chessBoard.gameTiles[y][x].pieceonTile
-                                chessBoard.gameTiles[y][x].pieceonTile=nullpiece()
-                                s=updateposition(n,m)
-                                chessBoard.gameTiles[n][m].pieceonTile.position=s
-                    if promotion==False:
-                        allTiles.clear()
-                        allpieces.clear()
-                        chessBoard.printboard()
-                        drawchesspieces()
-                        moves=[]
-
-                    if promotion==True:
-                        if  chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P' and x==7 and y==6:
-                            pygame.draw.rect(gamedisplay,(255,255,255),[x*100-100,(y*100)-200,200,200])
-                            imgx=pygame.transform.scale(pygame.image.load("./chessart/BQ.png",), (100,100))
-                            imgx1=pygame.transform.scale(pygame.image.load("./chessart/BR.png",), (100,100))
-                            imgx2=pygame.transform.scale(pygame.image.load("./chessart/BN.png",), (100,100))
-                            imgx3=pygame.transform.scale(pygame.image.load("./chessart/BB.png",), (100,100))
-                            gamedisplay.blit(imgx,[x*100-100,(y*100)-200])
-                            gamedisplay.blit(imgx1,[(x*100),(y*100)-200])
-                            gamedisplay.blit(imgx2,[x*100-100,(y*100)-100])
-                            gamedisplay.blit(imgx3,[(x*100),(y*100)-100])
-                            promote=[[y-2,x-1],[y-2,x],[y-1,x],[y-1,x],[m,n],[y,x]]
-
-                        elif chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P':
-                            pygame.draw.rect(gamedisplay,(255,255,255),[x*100,(y*100)-200,200,200])
-                            imgx=pygame.transform.scale(pygame.image.load("./chessart/BQ.png",), (100,100))
-                            imgx1=pygame.transform.scale(pygame.image.load("./chessart/BR.png",), (100,100))
-                            imgx2=pygame.transform.scale(pygame.image.load("./chessart/BN.png",), (100,100))
-                            imgx3=pygame.transform.scale(pygame.image.load("./chessart/BB.png",), (100,100))
-                            gamedisplay.blit(imgx,[x*100,(y*100)-200])
-                            gamedisplay.blit(imgx1,[(x*100)+100,(y*100)-200])
-                            gamedisplay.blit(imgx2,[x*100,(y*100)-100])
-                            gamedisplay.blit(imgx3,[(x*100)+100,(y*100)-100])
-                            promote=[[y-2,x],[y-2,x+1],[y-1,x],[y-1,x+1],[m,n],[y,x]]
-
-                        elif  chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p' and x==7 and y==1:
-                            pygame.draw.rect(gamedisplay,(0,0,0),[x*100-100,(y*100)+100,200,200])
-                            imgx=pygame.transform.scale(pygame.image.load("./chessart/WQ.png",), (100,100))
-                            imgx1=pygame.transform.scale(pygame.image.load("./chessart/WR.png",), (100,100))
-                            imgx2=pygame.transform.scale(pygame.image.load("./chessart/WN.png",), (100,100))
-                            imgx3=pygame.transform.scale(pygame.image.load("./chessart/WB.png",), (100,100))
-                            gamedisplay.blit(imgx,[x*100-100,(y*100)+200])
-                            gamedisplay.blit(imgx1,[(x*100),(y*100)+200])
-                            gamedisplay.blit(imgx2,[x*100-100,(y*100)+100])
-                            gamedisplay.blit(imgx3,[(x*100),(y*100)+100])
-                            promote=[[y+2,x-1],[y+2,x],[y+1,x],[y+1,x],[m,n],[y,x]]
-
-                        elif chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p':
-                            pygame.draw.rect(gamedisplay,(0,0,0),[x*100,(y*100)+100,200,200])
-                            imgx=pygame.transform.scale(pygame.image.load("./chessart/WQ.png",), (100,100))
-                            imgx1=pygame.transform.scale(pygame.image.load("./chessart/WR.png",), (100,100))
-                            imgx2=pygame.transform.scale(pygame.image.load("./chessart/WN.png",), (100,100))
-                            imgx3=pygame.transform.scale(pygame.image.load("./chessart/WB.png",), (100,100))
-                            gamedisplay.blit(imgx,[x*100,(y*100)+200])
-                            gamedisplay.blit(imgx1,[(x*100)+100,(y*100)+200])
-                            gamedisplay.blit(imgx2,[x*100,(y*100)+100])
-                            gamedisplay.blit(imgx3,[(x*100)+100,(y*100)+100])
-                            promote=[[y+2,x],[y+2,x+1],[y+1,x],[y+1,x+1],[m,n],[y,x]]
-
-
-
-
-
-
-
-
-
-
-                else:
-                    drawchesspieces()
-                    coords = pygame.mouse.get_pos()
-                    x=math.floor(coords[0]/100)
-                    y=math.floor(coords[1]/100)
-                    mx=[]
-                    if(not chessBoard.gameTiles[y][x].pieceonTile.tostring()=='-'):
-                        moves=chessBoard.gameTiles[y][x].pieceonTile.legalmoveb(chessBoard.gameTiles)
-                        if(chessBoard.gameTiles[y][x].pieceonTile.tostring()=='K'):
-                            ax=movex.castlingb(chessBoard.gameTiles)
-                            if not len(ax)==0:
-                                for l in ax:
-                                    if l=='ks':
-                                        moves.append([0,6])
-                                    if l=='qs':
-                                        moves.append([0,2])
-                        if(chessBoard.gameTiles[y][x].pieceonTile.tostring()=='k'):
-                            ax=movex.castlingw(chessBoard.gameTiles)
-                            if not len(ax)==0:
-                                for l in ax:
-                                    if l=='ks':
-                                        moves.append([7,6])
-                                    if l=='qs':
-                                        moves.append([7,2])
-                        if(chessBoard.gameTiles[y][x].pieceonTile.tostring()=='P'):
-                            ay=movex.enpassantb(chessBoard.gameTiles,y,x)
-                            if not len(ay)==0:
-                                if ay[1]=='r':
-                                    moves.append([y+1,x+1])
-                                else:
-                                    moves.append([y+1,x-1])
-
-                        if(chessBoard.gameTiles[y][x].pieceonTile.tostring()=='p'):
-                            ay=movex.enpassantb(chessBoard.gameTiles,y,x)
-                            if not len(ay)==0:
-                                if ay[1]=='r':
-                                    moves.append([y-1,x+1])
-                                else:
-                                    moves.append([y-1,x-1])
-
-
-                    if chessBoard.gameTiles[y][x].pieceonTile.alliance=='Black':
-                        lx=movex.pinnedb(chessBoard.gameTiles,moves,y,x)
-                    if chessBoard.gameTiles[y][x].pieceonTile.alliance=='White':
-                        lx=movex.pinnedw(chessBoard.gameTiles,moves,y,x)
-                    moves=lx
-
-                    if turn%2==0:
-                        if chessBoard.gameTiles[y][x].pieceonTile.alliance=='Black':
-                            moves=[]
-                    else:
-                        if chessBoard.gameTiles[y][x].pieceonTile.alliance=='White':
-                            moves=[]
-
-
-                    imgx=pygame.transform.scale(pygame.image.load("./chessart/red_square.png",), (100,100))
-                    for move in moves:
-                        mx=[move[1]*100,move[0]*100]
-                        gamedisplay.blit(imgx,mx)
-
-
-
-
-
-
-
-
-
+            # Check for check conditions and handle game logic
+            if movex.checkw(chessBoard.gameTiles)[0] == 'checked' and len(moves) == 0:
+                array = movex.movesifcheckedw(chessBoard.gameTiles)
+                if len(array) == 0:
+                    saki = 'end1'
+                    quitgame = True
+
+            if movex.checkb(chessBoard.gameTiles)[0] == 'checked' and len(moves) == 0:
+                array = movex.movesifcheckedb(chessBoard.gameTiles)
+                if len(array) == 0:
+                    saki = 'end2'
+                    quitgame = True
+
+            # Handle player moves
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                coord = pygame.mouse.get_pos()
+                m = math.floor(coord[0] / 100)
+                n = math.floor(coord[1] / 100)
+
+                # Check if the player can make a move
+                if turn % 2 == 0:  # Assuming player 1 is White
+                    if chessBoard.gameTiles[n][m].pieceonTile.alliance == 'White':
+                        moves = chessBoard.gameTiles[n][m].pieceonTile.legalmoveb(chessBoard.gameTiles)
+                        # Send the move to the other player
+                        if moves:
+                            move_data = f"{n},{m}"  # Example format
+                            client_socket.send(move_data.encode('utf-8'))  # Send move to the server
+                else:  # Player 2 is Black
+                    if chessBoard.gameTiles[n][m].pieceonTile.alliance == 'Black':
+                        moves = chessBoard.gameTiles[n][m].pieceonTile.legalmoveb(chessBoard.gameTiles)
+                        # Send the move to the other player
+                        if moves:
+                            move_data = f"{n},{m}"  # Example format
+                            client_socket.send(move_data.encode('utf-8'))  # Send move to the server
+
+            # Receive moves from the other player
+            if role == "server":
+                try:
+                    data = client_socket.recv(1024).decode('utf-8')
+                    if data:
+                        n, m = map(int, data.split(','))
+                        # Update the game state based on the received move
+                        # (You will need to implement the logic to update the chessboard)
+                except Exception as e:
+                    print(f"Error receiving data: {e}")
+
+        # Update the display and game state
         for img in allpieces:
-            gamedisplay.blit(img[0],img[1])
-
-
-
+            gamedisplay.blit(img[0], img[1])
 
         pygame.display.update()
         clock.tick(60)
 
     # At the end of the game, save the result to the database
-    game = Game(player1=player1, player2=player2)
-    
-    if saki == 'end1':
-        game.result = 'Black won by checkmate'
-    elif saki == 'end2':
-        game.result = 'White won by checkmate'
-    elif saki == 'end3':
-        game.result = 'Stalemate'
-
-    session.add(game)  # Add the game to the session
-
-    # Optionally, log moves (if you want to track them)
-    for move_description in moves:  # Assuming moves is a list of move descriptions
-        move = Move(game=game, move_description=move_description)
-        session.add(move)
-
-    session.commit()  # Commit the game and moves to the database
-
-    # Close the session when done
-    session.close()
+    # (You can implement this part as needed)
 
 if saki=='ai':
 
