@@ -11,12 +11,14 @@ import copy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-
+from sockets.socket import start_server,start_client
+import threading
 
 from board.move import move
 
 # Import your models
-from database.databaseShema import Base, Player, Game, Move, engine  # Import your models and engine
+from database.databaseShema import Base, Player, Game, Move, engine
+from sockets.socket import start_client  # Import your models and engine
 # Set up SQLAlchemy
 engine = create_engine('sqlite:///chess_game.db')  # Use SQLite database
 Base.metadata.create_all(engine)  # Create tables
@@ -43,7 +45,7 @@ green = (0, 255, 0)
 blue = (0, 0, 128)
 font = pygame.font.Font('freesansbold.ttf', 32)
 text = font.render('pychess', True, green, blue)
-text1 = font.render('AI',True,green)
+text1 = font.render('LAN',True,green)
 text2 = font.render('2 player',True,green)
 text3=font.render('Black won by checkmate', True, green)
 text4=font.render('White won by checkmate', True, green)
@@ -89,7 +91,7 @@ while not quitgame:
         if event.type==pygame.MOUSEBUTTONDOWN:
             coord = pygame.mouse.get_pos()
             if coord[0]>=100 and coord[0]<=300 and coord[1]>=300 and coord[1]<=400:
-                saki='ai'
+                saki='LAN'
                 quitgame=True
             if coord[0]>=500 and coord[0]<=700 and coord[1]>=300 and coord[1]<=400:
                 saki='2 player'
@@ -611,25 +613,30 @@ if saki=='2 player':
     # Close the session when done
     session.close()
 
-if saki=='ai':
+if saki=='LAN':
+    moves = []
+    enpassant = []
+    promote = []
+    promotion = False
+    turn = 0
+    array = []
+    quitgame = False
+    received_move = None  # Variable to store the received move
+    client_socket = None  # Initialize client socket
 
-    moves=[]
-    enpassant=[]
-    promote=[]
-    promotion=False
-    turn=0
-
-    array=[]
-    quitgame=False
+    # Start server or client based on user input
+    mode = input("Enter 'server' to start a server or 'client' to connect to a server: ").strip().lower()
+    if mode == 'server':
+        threading.Thread(target=start_server, daemon=True).start()  # Start server in a new thread
+    elif mode == 'client':
+        threading.Thread(target=start_client, daemon=True).start()  # Start client in a new thread
 
     while not quitgame:
         for event in pygame.event.get():
-
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
-
 
             if movex.checkw(chessBoard.gameTiles)[0]=='checked' and len(moves)==0 :
                 array=movex.movesifcheckedw(chessBoard.gameTiles)
@@ -982,7 +989,7 @@ if saki=='end1':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
@@ -997,7 +1004,7 @@ if saki=='end2':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
@@ -1013,7 +1020,7 @@ if saki=='end3':
     while not quitgame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitgame= True
+                quitgame = True
                 pygame.quit()
                 quit()
 
